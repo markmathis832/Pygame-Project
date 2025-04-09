@@ -2,15 +2,30 @@
 # CSE 1321 Pong - Project Outline
 
 # ----------- IMPORTS -----------
-# Import required modules (pygame, sys, etc.)
+import pygame
+import sys
+from pygame.locals import *
+from datetime import datetime
 
 # ----------- INITIAL SETUP -----------
-# Initialize Pygame
-# Set up screen dimensions, display surface, and caption
-# Create a clock object to control frame rate
+pygame.init()
+WIDTH = 800
+HEIGHT = 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("CSE 1321 Pong Pygame Project")
+clock = pygame.time.Clock()
 
 # ----------- COLORS -----------
-# Define color constants (WHITE, BLACK, etc.)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# ----------- VARIABLES -----------
+player_speed = 7
+opponent_speed = 5
+ball_speed_x = 5
+ball_speed_y = 5
+score = 0
+result = ""
 
 # ----------- SURFACES -----------
 # Define all 10 required visible Surface objects:
