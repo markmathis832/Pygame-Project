@@ -1,0 +1,3 @@
+# High Scores
+Player Wins: 0
+Opponent Wins: 0

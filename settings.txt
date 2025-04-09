@@ -1,0 +1,3 @@
+# User Settings
+sound=True
+difficulty=normal

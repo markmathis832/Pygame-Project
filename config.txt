@@ -1,0 +1,4 @@
+# Pong Game Configuration
+player_speed=7
+ball_speed_x=5
+ball_speed_y=5
