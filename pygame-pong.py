@@ -18,29 +18,87 @@ clock = pygame.time.Clock()
 # ----------- COLORS -----------
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 # ----------- VARIABLES -----------
 player_speed = 7
+player_color = (GREEN)
 opponent_speed = 5
+opponent_color = (RED)
 ball_speed_x = 5
 ball_speed_y = 5
+ball_color = (WHITE)
 score = 0
 result = ""
 
 # ----------- SURFACES -----------
-# Define all 10 required visible Surface objects:
 # 1. Display surface (screen)
+display_surface = pygame.display.set_mode((WIDTH, HEIGHT))
+
 # 2-3. Paddles (player and opponent)
+paddle_surface = pygame.Surface((10, 100))
+paddle_surface.fill(player_color)
+opponent_surface = pygame.Surface((10, 100))
+opponent_surface.fill(opponent_color)
+
 # 4. Ball
+ball_surface = pygame.Surface((20, 20))
+ball_surface.fill(ball_color)
+
 # 5. Midline
+midline_surface = pygame.Surface((2, HEIGHT))
+midline_surface.fill(WHITE)
+
 # 6. Instructions surface
+instructions_surface = pygame.Surface((WIDTH, 100))
+instructions_surface.fill(WHITE)
+
 # 7. Score display surface
+score_surface = pygame.Surface((100, 50))
+score_surface.fill(WHITE)
+
 # 8. Win text surface
+win_surface = pygame.Surface((WIDTH, HEIGHT))
+win_surface.fill(WHITE)
+
 # 9. Lose text surface
+lose_surface = pygame.Surface((WIDTH, HEIGHT))
+lose_surface.fill(WHITE)
+
 # 10. Restart/Quit button surfaces
+restart_surface = pygame.Surface((100, 50))
+restart_surface.fill(WHITE)
 
 # ----------- RECT OBJECTS -----------
 # Define pygame.Rects for paddles, ball, and buttons
+
+# 1-2. Paddles (player and opponent)
+player_rect = paddle_surface.get_rect(midleft=(20, HEIGHT / 2))
+opponent_rect = opponent_surface.get_rect(midright=(WIDTH - 20, HEIGHT / 2))
+
+# 3. Ball
+ball_rect = ball_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+
+# 4. Midline
+midline_rect = midline_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+
+# 5. Instructions surface
+instructions_rect = instructions_surface.get_rect(center=(WIDTH / 2, 50))
+
+# 6. Score display surface
+score_rect = score_surface.get_rect(center=(WIDTH / 2, 100))
+
+# 7. Win text surface
+win_rect = win_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+
+# 8. Lose text surface
+lose_rect = lose_surface.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+
+# 9. Restart/Quit button surfaces
+restart_rect = restart_surface.get_rect(center=(WIDTH / 2, HEIGHT - 50))
+
 
 # ----------- FILE IO -----------
 # Read from files:
@@ -77,15 +135,21 @@ result = ""
 # Trigger end screen and file writing
 
 # ----------- MAIN LOOP -----------
-# Main game loop to handle:
-# - Input
-# - Movement
-# - Drawing
-# - State updates
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        elif event.type == KEYDOWN and event.key == K_ESCAPE:
+            running = False
+
+    pygame.display.flip()
+    clock.tick(60)
 
 # ----------- END GAME / RESTART LOGIC -----------
 # Show end screen with win/lose
 # Allow restart or quit using keys or buttons
 
 # ----------- CLEANUP -----------
-# Quit pygame and clean up resources
+pygame.quit()
+sys.exit()
