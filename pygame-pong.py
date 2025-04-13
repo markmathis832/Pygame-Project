@@ -9,10 +9,15 @@ from datetime import datetime
 
 # ----------- INITIAL SETUP -----------
 pygame.init()
+pygame.mixer.init()
+
 WIDTH = 800
 HEIGHT = 600
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
 pygame.display.set_caption("CSE 1321 Pong Pygame Project")
+
 clock = pygame.time.Clock()
 
 # ----------- COLORS -----------
@@ -31,6 +36,8 @@ opponent_color = (RED)
 ball_speed_x = 5
 ball_speed_y = 5
 ball_color = (WHITE)
+ball_touched_paddle = False
+win_played = False
 score = 0
 result = ""
 
@@ -111,12 +118,6 @@ restart_rect = restart_surface.get_rect(center=(WIDTH / 2, HEIGHT - 50))
 # - settings.txt (save user preferences)
 
 # ----------- SOUND SETUP -----------
-# Load at least 2 sound files
-# - bounce.wav
-# - win.wav or lose.wav
-
-pygame.mixer.init()
-
 # Load sound files from assets/sounds
 bounce_sound = pygame.mixer.Sound("assets/Sounds/ball_sound.wav")  # Paddle hit sound
 win_sound = pygame.mixer.Sound("assets/Sounds/Win_sound.wav")  # Victory sound
@@ -126,13 +127,20 @@ pygame.mixer.music.load("assets/Sounds/Background.wav")  # Background music
 bounce_sound.set_volume(0.8)  # 80% volume
 win_sound.set_volume(1.0)     # Full volume
 
+# Loop background music indefinitely
+pygame.mixer.music.play(-1)
+
 # ----------- DRAW FUNCTION -----------
 # Function to blit all surfaces to the screen
-# - Blit paddles, ball, UI elements, and buttons
-
-# ----------- INPUT HANDLING -----------
-# Process keyboard input (W/S, arrow keys, Esc, R)
-# Process mouse input if needed (for restart/quit)
+def draw_objects():
+    screen.fill(BLACK)
+    screen.blit(paddle_surface, player_rect)
+    screen.blit(opponent_surface, opponent_rect)
+    screen.blit(ball_surface, ball_rect)
+    screen.blit(midline_surface, midline_rect)
+    # screen.blit(score_surface, score_rect)
+    # screen.blit(instructions_surface, instructions_rect)
+    # Optional: draw restart/quit buttons later
 
 # ----------- MOVEMENT FUNCTIONS -----------
 # Move player paddle based on key input
@@ -146,26 +154,63 @@ win_sound.set_volume(1.0)     # Full volume
 # Check for win/lose conditions
 # Trigger end screen and file writing
 
-if ball_rect.colliderect(player_rect) or ball_rect.colliderect(opponent_rect):
-    bounce_sound.play()
-
-# win sound when a player wins
-if score >= 10:  # Assuming score of 10 is a win condition
-    win_sound.play()
-
-# Loop background music indefinitely
-pygame.mixer.music.play(-1)
-
 
 # ----------- MAIN LOOP -----------
 running = True
+
 while running:
+    # event handling for quitting the game
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
         elif event.type == KEYDOWN and event.key == K_ESCAPE:
             running = False
 
+    # player paddle movement
+    keys = pygame.key.get_pressed()
+    if keys[K_w] and player_rect.top > 0:
+        player_rect.y -= player_speed
+    if keys[K_s] and player_rect.bottom < HEIGHT:
+        player_rect.y += player_speed
+
+    # opponent bot movement
+    if opponent_rect.top < ball_rect.y:
+        opponent_rect.y += opponent_speed
+    if opponent_rect.bottom > ball_rect.y:
+        opponent_rect.y -= opponent_speed
+
+    # ball movement
+    ball_rect.x += ball_speed_x
+    ball_rect.y += ball_speed_y
+
+    # ball collision with walls
+    if ball_rect.top <= 0 or ball_rect.bottom >= HEIGHT:
+        ball_speed_y *= -1
+
+    # ball collision with paddles
+    if ball_rect.colliderect(player_rect) or ball_rect.colliderect(opponent_rect):
+        if not ball_touched_paddle:
+            ball_speed_x *= -1
+            ball_touched_paddle = True
+            bounce_sound.play()
+        else:
+            ball_touched_paddle = False 
+
+    # scoring when ball goes off screen
+    if ball_rect.left <= 0 or ball_rect.right >= WIDTH:
+        score += 1
+        ball_rect.center = (WIDTH // 2, HEIGHT // 2)
+        ball_speed_x *= -1
+
+    # win sound when a player wins
+    if score >= 10 and not win_played:  # Assuming score of 10 is a win condition
+        win_sound.play()
+        win_played = True
+
+    # drawing the game objects
+    draw_objects()    
+
+    # updating the display
     pygame.display.flip()
     clock.tick(60)
 
