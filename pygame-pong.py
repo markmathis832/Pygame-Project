@@ -22,6 +22,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+
 # ----------- VARIABLES -----------
 player_speed = 7
 player_color = (GREEN)
@@ -114,6 +115,17 @@ restart_rect = restart_surface.get_rect(center=(WIDTH / 2, HEIGHT - 50))
 # - bounce.wav
 # - win.wav or lose.wav
 
+pygame.mixer.init()
+
+# Load sound files from assets/sounds
+bounce_sound = pygame.mixer.Sound("assets/Sounds/ball_sound.wav")  # Paddle hit sound
+win_sound = pygame.mixer.Sound("assets/Sounds/Win_sound.wav")  # Victory sound
+pygame.mixer.music.load("assets/Sounds/Background.wav")  # Background music
+
+# Set sound volumes (optional)
+bounce_sound.set_volume(0.8)  # 80% volume
+win_sound.set_volume(1.0)     # Full volume
+
 # ----------- DRAW FUNCTION -----------
 # Function to blit all surfaces to the screen
 # - Blit paddles, ball, UI elements, and buttons
@@ -134,6 +146,17 @@ restart_rect = restart_surface.get_rect(center=(WIDTH / 2, HEIGHT - 50))
 # Check for win/lose conditions
 # Trigger end screen and file writing
 
+if ball_rect.colliderect(player_rect) or ball_rect.colliderect(opponent_rect):
+    bounce_sound.play()
+
+# win sound when a player wins
+if score >= 10:  # Assuming score of 10 is a win condition
+    win_sound.play()
+
+# Loop background music indefinitely
+pygame.mixer.music.play(-1)
+
+
 # ----------- MAIN LOOP -----------
 running = True
 while running:
@@ -151,5 +174,7 @@ while running:
 # Allow restart or quit using keys or buttons
 
 # ----------- CLEANUP -----------
+pygame.mixer.music.stop()
+pygame.mixer.quit()
 pygame.quit()
 sys.exit()
