@@ -38,7 +38,8 @@ ball_speed_y = 5
 ball_color = (WHITE)
 ball_touched_paddle = False
 win_played = False
-score = 0
+player_score = 0
+opponent_score = 0
 result = ""
 
 # ----------- SURFACES -----------
@@ -130,7 +131,42 @@ win_sound.set_volume(1.0)     # Full volume
 # Loop background music indefinitely
 pygame.mixer.music.play(-1)
 
-# ----------- DRAW FUNCTION -----------
+# ----------- IMAGE ASSETS -----------
+# Load splash screen image
+welcome_img = pygame.image.load("Assets/Images/welcome.png")
+
+
+# ----------- DRAW FUNCTIONS -----------
+font = pygame.font.SysFont(None, 36)
+
+# Start screen function
+def show_start_screen():
+    waiting = True
+    font = pygame.font.SysFont(None, 48)
+    title_text = font.render("Welcome to Pong!", True, WHITE)
+    start_text = font.render("Press SPACE to Start", True, WHITE)
+
+    while waiting:
+        screen.fill(BLACK)
+
+        # draw the splash image centered
+        screen.blit(welcome_img, (WIDTH // 2 - welcome_img.get_width() // 2, HEIGHT // 2 - welcome_img.get_height() // 2 - 50))
+
+        # draw text below it
+        screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, HEIGHT - 150))
+        screen.blit(start_text, (WIDTH // 2 - start_text.get_width() // 2, HEIGHT - 100))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == KEYDOWN:
+                if event.key == K_SPACE:
+                    waiting = False
+
+
 # Function to blit all surfaces to the screen
 def draw_objects():
     screen.fill(BLACK)
@@ -138,9 +174,39 @@ def draw_objects():
     screen.blit(opponent_surface, opponent_rect)
     screen.blit(ball_surface, ball_rect)
     screen.blit(midline_surface, midline_rect)
-    # screen.blit(score_surface, score_rect)
+    # Draw player score (left, green)
+    player_text = font.render(f"Player: {player_score}", True, GREEN)
+    screen.blit(player_text, (20, 20))
+
+    # Draw opponent score (right, red)
+    opponent_text = font.render(f"Opponent: {opponent_score}", True, RED)
+    screen.blit(opponent_text, (WIDTH - opponent_text.get_width() - 20, 20))
     # screen.blit(instructions_surface, instructions_rect)
-    # Optional: draw restart/quit buttons later
+
+# End screen function
+def show_end_screen(message):
+    font = pygame.font.SysFont(None, 48)
+    end_text = font.render(message, True, WHITE)
+    restart_text = font.render("Press R to Restart or ESC to Quit", True, WHITE)
+    waiting = True
+
+    while waiting:
+        screen.fill(BLACK)
+        screen.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 3))
+        screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2))
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == KEYDOWN:
+                if event.key == K_r:
+                    waiting = False  # Go back to game
+                elif event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
 
 # ----------- MOVEMENT FUNCTIONS -----------
 # Move player paddle based on key input
@@ -156,6 +222,8 @@ def draw_objects():
 
 
 # ----------- MAIN LOOP -----------
+show_start_screen()
+
 running = True
 
 while running:
@@ -196,16 +264,36 @@ while running:
         else:
             ball_touched_paddle = False 
 
-    # scoring when ball goes off screen
-    if ball_rect.left <= 0 or ball_rect.right >= WIDTH:
-        score += 1
+    # scoring logic
+    if ball_rect.left <= 0:  # player missed
+        opponent_score += 1
         ball_rect.center = (WIDTH // 2, HEIGHT // 2)
         ball_speed_x *= -1
 
-    # win sound when a player wins
-    if score >= 10 and not win_played:  # Assuming score of 10 is a win condition
+    elif ball_rect.right >= WIDTH:  # opponent missed
+        player_score += 1
+        ball_rect.center = (WIDTH // 2, HEIGHT // 2)
+        ball_speed_x *= -1
+
+    # win or lose condition
+    if player_score >= 10 and not win_played: # Assuming score of 10 is a win condition
         win_sound.play()
         win_played = True
+        show_end_screen("You Win!")
+        # Reset game state
+        player_score = 0
+        opponent_score = 0
+        win_played = False
+        ball_rect.center = (WIDTH // 2, HEIGHT // 2)
+
+    elif opponent_score <= -5 and not win_played:
+        win_played = True
+        show_end_screen("You Lose!")
+        # Reset game state
+        player_score = 0
+        opponent_score = 0
+        win_played = False
+        ball_rect.center = (WIDTH // 2, HEIGHT // 2)
 
     # drawing the game objects
     draw_objects()    
