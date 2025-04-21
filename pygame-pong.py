@@ -285,8 +285,11 @@ while running:
         opponent_score = 0
         win_played = False
         ball_rect.center = (WIDTH // 2, HEIGHT // 2)
+        #should reset the paddle to center
+        player_rect.centery = HEIGHT //2
+        opponent_rect.centery = HEIGHT //2
 
-    elif opponent_score <= -5 and not win_played:
+    elif opponent_score >= 10 and not win_played:
         win_played = True
         show_end_screen("You Lose!")
         # Reset game state
@@ -294,6 +297,9 @@ while running:
         opponent_score = 0
         win_played = False
         ball_rect.center = (WIDTH // 2, HEIGHT // 2)
+        #should reset the paddle to center
+        player_rect.centery = HEIGHT //2
+        opponent_rect.centery = HEIGHT //2
 
     # drawing the game objects
     draw_objects()    
