@@ -1,1 +1,2 @@
 # Game Log
+Result: You Win!, Player Score: 10, Opponent Score: 0

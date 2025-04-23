@@ -29,9 +29,19 @@ BLUE = (0, 0, 255)
 
 
 # ----------- VARIABLES -----------
+# Default values
+ball_moving = True
+sound_on = True
+difficulty = "normal"
 player_speed = 7
 player_color = (GREEN)
 opponent_speed = 5
+if difficulty == "easy":
+    opponent_speed = 3
+elif difficulty == "hard":
+    opponent_speed = 7
+else:
+    opponent_speed = 5  # normal
 opponent_color = (RED)
 ball_speed_x = 5
 ball_speed_y = 5
@@ -81,7 +91,6 @@ restart_surface = pygame.Surface((100, 50))
 restart_surface.fill(WHITE)
 
 # ----------- RECT OBJECTS -----------
-# Define pygame.Rects for paddles, ball, and buttons
 
 # 1-2. Paddles (player and opponent)
 player_rect = paddle_surface.get_rect(midleft=(20, HEIGHT / 2))
@@ -110,13 +119,20 @@ restart_rect = restart_surface.get_rect(center=(WIDTH / 2, HEIGHT - 50))
 
 
 # ----------- FILE IO -----------
-# Read from files:
-# - instructions.txt (game instructions)
-# - config.txt (initial settings)
-# Write to files:
-# - score.txt (track high scores)
-# - log.txt (log win/lose states)
-# - settings.txt (save user preferences)
+# Read settings from settings.txt
+try:
+    settings_file = open("settings.txt", "r")
+    lines = settings_file.readlines()
+    for line in lines:
+        if "sound=" in line:
+            value = line.strip().split("=")[1]
+            if value == "False":
+                sound_on = False
+        elif "difficulty=" in line:
+            difficulty = line.strip().split("=")[1]
+    settings_file.close()
+except:
+    pass  # use default if file not found
 
 # ----------- SOUND SETUP -----------
 # Load sound files from assets/sounds
@@ -127,6 +143,10 @@ pygame.mixer.music.load("assets/Sounds/Background.wav")  # Background music
 # Set sound volumes (optional)
 bounce_sound.set_volume(0.8)  # 80% volume
 win_sound.set_volume(1.0)     # Full volume
+if not sound_on:
+    bounce_sound.set_volume(0)
+    win_sound.set_volume(0)
+    pygame.mixer.music.set_volume(0)
 
 # Loop background music indefinitely
 pygame.mixer.music.play(-1)
@@ -145,6 +165,8 @@ def show_start_screen():
     font = pygame.font.SysFont(None, 48)
     title_text = font.render("Welcome to Pong!", True, WHITE)
     start_text = font.render("Press SPACE to Start", True, WHITE)
+    toggle_text = font.render("Press T to Toggle Sound | D to Change Difficulty", True, WHITE)
+
 
     while waiting:
         screen.fill(BLACK)
@@ -155,6 +177,8 @@ def show_start_screen():
         # draw text below it
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, HEIGHT - 150))
         screen.blit(start_text, (WIDTH // 2 - start_text.get_width() // 2, HEIGHT - 100))
+        screen.blit(toggle_text, (WIDTH // 2 - toggle_text.get_width() // 2, HEIGHT - 60))
+
 
         pygame.display.flip()
 
@@ -181,13 +205,23 @@ def draw_objects():
     # Draw opponent score (right, red)
     opponent_text = font.render(f"Opponent: {opponent_score}", True, RED)
     screen.blit(opponent_text, (WIDTH - opponent_text.get_width() - 20, 20))
-    # screen.blit(instructions_surface, instructions_rect)
+    
+    # Draw settings text    
+    settings_text = font.render("T: Toggle Sound | D: Change Difficulty", True, WHITE)
+    screen.blit(settings_text, (WIDTH // 2 - settings_text.get_width() // 2, 60))
+
 
 # End screen function
 def show_end_screen(message):
+    # write the result to the log file  
+    log_file = open("log.txt", "a")
+    log_file.write("Result: " + message + ", Player Score: " + str(player_score) + ", Opponent Score: " + str(opponent_score) + "\n")
+    log_file.close()
+
     font = pygame.font.SysFont(None, 48)
     end_text = font.render(message, True, WHITE)
     restart_text = font.render("Press R to Restart or ESC to Quit", True, WHITE)
+
     waiting = True
 
     while waiting:
@@ -207,19 +241,30 @@ def show_end_screen(message):
                     pygame.quit()
                     sys.exit()
 
+# Countdown function
+def countdown():
+    global ball_moving
+    ball_moving = False
+    font = pygame.font.SysFont(None, 72)
 
-# ----------- MOVEMENT FUNCTIONS -----------
-# Move player paddle based on key input
-# Move opponent paddle (AI or fixed speed)
-# Move ball, bounce off edges and paddles
+    for i in range(3, 0, -1):
+        screen.fill(BLACK)
+        draw_objects()
 
-# ----------- COLLISION DETECTION -----------
-# Detect ball collision with paddles and walls
+        # Display countdown number
+        countdown_text = font.render(str(i), True, WHITE)
+        screen.blit(countdown_text, (WIDTH // 2 - countdown_text.get_width() // 2, HEIGHT // 2 - countdown_text.get_height() // 2))
+        pygame.display.flip()
 
-# ----------- GAME LOGIC -----------
-# Check for win/lose conditions
-# Trigger end screen and file writing
+        # Wait 1 second (1000 ms) WITHOUT freezing game loop
+        start_time = pygame.time.get_ticks()
+        while pygame.time.get_ticks() - start_time < 1000:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
 
+    ball_moving = True
 
 # ----------- MAIN LOOP -----------
 show_start_screen()
@@ -233,6 +278,43 @@ while running:
             running = False
         elif event.type == KEYDOWN and event.key == K_ESCAPE:
             running = False
+        elif event.type == KEYDOWN:
+            # Toggle sound with T
+            if event.key == K_t:
+                sound_on = not sound_on
+
+                if sound_on:
+                    bounce_sound.set_volume(0.8)
+                    win_sound.set_volume(1.0)
+                    pygame.mixer.music.set_volume(0.5)
+                else:
+                    bounce_sound.set_volume(0)
+                    win_sound.set_volume(0)
+                    pygame.mixer.music.set_volume(0)
+
+                # Save to settings.txt
+                settings_file = open("settings.txt", "w")
+                settings_file.write("sound=" + str(sound_on) + "\n")
+                settings_file.write("difficulty=" + difficulty + "\n")
+                settings_file.close()
+
+            # Toggle difficulty with D
+            elif event.key == K_d:
+                if difficulty == "easy":
+                    difficulty = "normal"
+                    opponent_speed = 5
+                elif difficulty == "normal":
+                    difficulty = "hard"
+                    opponent_speed = 7
+                else:
+                    difficulty = "easy"
+                    opponent_speed = 3
+
+                # Save to settings.txt
+                settings_file = open("settings.txt", "w")
+                settings_file.write("sound=" + str(sound_on) + "\n")
+                settings_file.write("difficulty=" + difficulty + "\n")
+                settings_file.close()
 
     # player paddle movement
     keys = pygame.key.get_pressed()
@@ -248,8 +330,9 @@ while running:
         opponent_rect.y -= opponent_speed
 
     # ball movement
-    ball_rect.x += ball_speed_x
-    ball_rect.y += ball_speed_y
+    if ball_moving:
+        ball_rect.x += ball_speed_x
+        ball_rect.y += ball_speed_y
 
     # ball collision with walls
     if ball_rect.top <= 0 or ball_rect.bottom >= HEIGHT:
@@ -265,21 +348,30 @@ while running:
             ball_touched_paddle = False 
 
     # scoring logic
-    if ball_rect.left <= 0:  # player missed
+    if ball_rect.left <= 0:
         opponent_score += 1
         ball_rect.center = (WIDTH // 2, HEIGHT // 2)
         ball_speed_x *= -1
+        countdown()
 
-    elif ball_rect.right >= WIDTH:  # opponent missed
+    elif ball_rect.right >= WIDTH:
         player_score += 1
         ball_rect.center = (WIDTH // 2, HEIGHT // 2)
         ball_speed_x *= -1
+        countdown()
 
     # win or lose condition
     if player_score >= 10 and not win_played: # Assuming score of 10 is a win condition
         win_sound.play()
         win_played = True
         show_end_screen("You Win!")
+
+        # Update score file
+        file = open("score.txt", "w")
+        file.write("Player Wins: 1\n")
+        file.write("Opponent Wins: 0\n")
+        file.close()
+
         # Reset game state
         player_score = 0
         opponent_score = 0
@@ -292,6 +384,13 @@ while running:
     elif opponent_score >= 10 and not win_played:
         win_played = True
         show_end_screen("You Lose!")
+
+        # Update score file
+        file = open("score.txt", "w")
+        file.write("Player Wins: 0\n")
+        file.write("Opponent Wins: 1\n")
+        file.close()
+
         # Reset game state
         player_score = 0
         opponent_score = 0
@@ -307,10 +406,6 @@ while running:
     # updating the display
     pygame.display.flip()
     clock.tick(60)
-
-# ----------- END GAME / RESTART LOGIC -----------
-# Show end screen with win/lose
-# Allow restart or quit using keys or buttons
 
 # ----------- CLEANUP -----------
 pygame.mixer.music.stop()

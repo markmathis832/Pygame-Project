@@ -1,10 +1,9 @@
 Welcome to Pong!
 
-Controls:
-- Player 1: W = Up, S = Down
-- Press ESC to quit at any time
-- Press R to restart after the game ends
-
-Goal:
-Prevent the ball from reaching your side.
-First player to miss loses the game.
+Use W/S to move your paddle.
+First to 10 wins.
+Press SPACE to start.
+Press R to restart after a match.
+Press ESC to quit.
+Press T to toggle sound.
+Press D to change difficulty.
