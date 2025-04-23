@@ -1,7 +1,7 @@
 Welcome to Pong!
 
 Use W/S to move your paddle.
-First to 10 wins.
+First to 5 wins.
 Press SPACE to start.
 Press R to restart after a match.
 Press ESC to quit.

@@ -1,4 +1,3 @@
-
 # CSE 1321 Pong - Project Outline
 
 # ----------- IMPORTS -----------
@@ -154,6 +153,8 @@ pygame.mixer.music.play(-1)
 # ----------- IMAGE ASSETS -----------
 # Load splash screen image
 welcome_img = pygame.image.load("Assets/Images/welcome.png")
+credits_img = pygame.image.load("Assets/Images/credits.png")
+credits_img = pygame.transform.scale(credits_img, (WIDTH, HEIGHT))
 
 
 # ----------- DRAW FUNCTIONS -----------
@@ -213,7 +214,9 @@ def draw_objects():
 
 # End screen function
 def show_end_screen(message):
-    # write the result to the log file  
+    global player_score, opponent_score
+
+    # Write the result to the log file  
     log_file = open("log.txt", "a")
     log_file.write("Result: " + message + ", Player Score: " + str(player_score) + ", Opponent Score: " + str(opponent_score) + "\n")
     log_file.close()
@@ -225,9 +228,15 @@ def show_end_screen(message):
     waiting = True
 
     while waiting:
-        screen.fill(BLACK)
-        screen.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 3))
-        screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2))
+        screen.blit(credits_img, (0, 0))  # Show the credits image as background
+
+        # Draw a black rectangle to cover the credits image
+        pygame.draw.rect(screen, BLACK, (0, 20, WIDTH, 100))
+
+        # Overlay messages moved text higher up
+        screen.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, 30))
+        screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, 80))
+
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -250,6 +259,12 @@ def countdown():
     for i in range(3, 0, -1):
         screen.fill(BLACK)
         draw_objects()
+
+        # Draw a rect behind the countdown text
+        overlay = pygame.Surface((WIDTH, HEIGHT))
+        overlay.set_alpha(180)  
+        overlay.fill(BLACK)
+        screen.blit(overlay, (0, 0))
 
         # Display countdown number
         countdown_text = font.render(str(i), True, WHITE)
@@ -361,7 +376,7 @@ while running:
         countdown()
 
     # win or lose condition
-    if player_score >= 10 and not win_played: # Assuming score of 10 is a win condition
+    if player_score >= 5 and not win_played: # Changed from 10 to 5
         win_sound.play()
         win_played = True
         show_end_screen("You Win!")
@@ -381,7 +396,7 @@ while running:
         player_rect.centery = HEIGHT //2
         opponent_rect.centery = HEIGHT //2
 
-    elif opponent_score >= 10 and not win_played:
+    elif opponent_score >= 5 and not win_played: # Changed from 10 to 5
         win_played = True
         show_end_screen("You Lose!")
 

@@ -1,2 +1,4 @@
 # Game Log
 Result: You Win!, Player Score: 10, Opponent Score: 0
+Result: You Lose!, Player Score: 1, Opponent Score: 10
+Result: You Lose!, Player Score: 0, Opponent Score: 5
